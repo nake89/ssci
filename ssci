@@ -1,0 +1,27 @@
+#!/bin/bash
+
+generateandinstall() {
+        domain=$1
+        whmapi1 generatessl domains=$domain countryName=FI stateOrProvinceName=Uusimaa localityName=Helsinki organizationName="Nordic Web Hotel Oy" organizationalUnitName="Webhotelli.fi" emailAddress=tuki%40webhotelli.fi keysize=2048 skip_certificate=0 --output=json > generatessl.json
+        KEY=$(jq .data.key generatessl.json | sed 's/"//g')
+        ENCODEDKEY=$(php -r "echo urlencode(\"$KEY\");")
+        CERT=$(jq .data.cert generatessl.json | sed 's/"//g')
+        ENCODECERT=$(php -r "echo urlencode(\"$CERT\");")
+        result=$(whmapi1 installssl domain=$domain crt=$ENCODECERT key=$ENCODEDKEY --output=json | jq --raw-output .metadata.result)
+        if [ $result = "1" ]
+                then
+                        echo "Self signed certificate for $domain installed"
+                else
+                        echo "Error with domain: $domain"
+        fi
+}
+first=$1
+if [ -z "$first" ] || [  $first = "--help" ] || [  $first = "-h" ]
+        then
+                echo "Usage: ssci [domain]"
+                echo "Example: ssci example.com"
+                echo "Install self signed certificate for a domain."
+                exit
+        else
+                generateandinstall $first
+fi
