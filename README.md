@@ -25,4 +25,5 @@ mv ssci/ .ssci
 cd .ssci
 chmod u+x ssci
 ln -s ~/.ssci/ssci ~/bin/ssci
+
 ```
